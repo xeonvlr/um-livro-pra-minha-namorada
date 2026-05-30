@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Para o Meu Amor Estelar</title>
+    <!-- Importando fontes elegantes para o clima romântico -->
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Montserrat:wght@300;400;600&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        /* ==========================================
+           1. VARIÁVEIS E ESTILOS GERAIS
+           ========================================== */
+        :root {
+            --cor-primaria: #ff75a0; /* Rosa romântico */
+            --cor-secundaria: #ffd700; /* Dourado estelar */
+            --cor-fundo: #03020c;
+            --cor-papel: #140b24;
+            --sombra-magica: 0 0 20px rgba(255, 117, 160, 0.6);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background-color: var(--cor-fundo);
+            font-family: 'Montserrat', sans-serif;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Centraliza tudo perfeitamente */
+            align-items: center;
+            overflow: hidden;
+            perspective: 2000px; /* Profundidade 3D para o livro */
+            color: #fff;
+            padding: 20px 10px;
+        }
+
+        /* Canvas para o Espaço Estelar + Corações */
+        #espaco-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Brilho Decorativo Discreto na Capa */
+        .brilho-topo {
+            font-size: 1.5rem;
+            color: var(--cor-primaria);
+            text-shadow: 0 0 10px var(--cor-primaria);
+            animation: flutuarSuave 4s ease-in-out infinite;
+        }
+
+        /* ==========================================
+           2. ESTRUTURA DO LIVRO 3D
+           ========================================== */
+        .area-livro {
+            position: relative;
+            z-index: 5;
+            width: 100%;
+            flex: 1; /* Permite que ocupe todo o espaço central dinamicamente */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .livro-wrapper {
+            position: relative;
+            width: 740px; 
+            height: 480px; 
+            transition: transform 0.5s ease;
+        }
+
+        .livro {
+            position: absolute;
+            width: 370px; 
+            height: 100%;
+            right: 0;
+            transform-style: preserve-3d;
+            transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: left center;
+        }
+
+        /* Move o livro para a esquerda ao abrir no Desktop para centralizar as duas páginas */
+        @media (min-width: 851px) {
+            .livro-wrapper.aberto .livro {
+                transform: translateX(-50%);
+            }
+        }
+
+        /* Folhas Físicas do Livro */
+        .folha {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            transform-origin: left center;
+            transform-style: preserve-3d;
+            transition: transform 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            z-index: 1;
+        }
+
+        /* Organização de camadas (Z-Index) */
+        .folha-1 { z-index: 6; }
+        .folha-2 { z-index: 5; }
+        .folha-3 { z-index: 4; }
+        .folha-4 { z-index: 3; }
+
+        /* Estilo Geral de Cada Página */
+        .pagina {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 0 15px 15px 0;
+            box-shadow: inset -5px 0 25px rgba(0, 0, 0, 0.6), 0 8px 25px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border: 2px solid rgba(255, 117, 160, 0.2);
+            background: linear-gradient(135deg, #180d2c 0%, #0c0617 100%);
+        }
+
+        /* Verso da Folha (vira para a esquerda) */
+        .pagina.verso {
+            transform: rotateY(180deg);
+            border-radius: 15px 0 0 15px;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            border-left: 2px solid rgba(255, 117, 160, 0.2);
+            box-shadow: inset 5px 0 25px rgba(0, 0, 0, 0.6), 0 8px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Lombada física simulada no centro */
+        .lombada {
+            position: absolute;
+            left: -10px;
+            top: 0;
+            width: 20px;
+            height: 100%;
+            background: linear-gradient(90deg, #07020e, #1c0f34, #07020e);
+            transform: translateZ(-2px);
+            border-radius: 5px;
+        }
+
+        /* Classe disparada pelo JS que executa a rotação */
+        .folha.virada {
+            transform: rotateY(-180deg);
+        }
+
+        /* Correção de profundidade nas páginas viradas no Desktop */
+        .folha-1.virada { z-index: 3; }
+        .folha-2.virada { z-index: 4; }
+        .folha-3.virada { z-index: 5; }
+        .folha-4.virada { z-index: 6; }
+
+        /* ==========================================
+           3. ESTILIZAÇÃO DO CONTEÚDO (ROMÂNTICO)
+           ========================================== */
+        
+        /* Capa do Livro */
+        .capa-frente {
+            background: radial-gradient(circle, #2a114c 0%, #090312 100%);
+            border: 4px double var(--cor-secundaria);
+            padding: 15px;
+        }
+
+        .moldura-capa {
+            border: 1px dashed rgba(255, 215, 0, 0.4);
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Centralização otimizada */
+            gap: 25px; /* Espaçamento uniforme */
+            align-items: center;
+            padding: 25px 15px;
+            position: relative;
+        }
+
+        .moldura-capa::before, .moldura-capa::after {
+            content: '✿';
+            position: absolute;
+            color: var(--cor-primaria);
+            font-size: 1rem;
+            text-shadow: 0 0 8px var(--cor-primaria);
+        }
+        .moldura-capa::before { top: 8px; left: 8px; }
+        .moldura-capa::after { bottom: 8px; right: 8px; }
+
+        .titulo-livro {
+            font-family: 'Playfair Display', serif;
+            color: var(--cor-secundaria);
+            font-size: 2.2rem;
+            letter-spacing: 2px;
+            text-align: center;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+        }
+
+        .coracao-cosmico {
+            font-size: 4rem;
+            color: var(--cor-primaria);
+            text-shadow: 0 0 20px var(--cor-primaria);
+            animation: pulsarCoracao 2s infinite ease-in-out;
+        }
+
+        /* Estilo das Páginas de Texto/Cartas */
+        .pagina-conteudo {
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
+
+        .titulo-pagina {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.25rem;
+            color: var(--cor-secundaria);
+            border-bottom: 1px solid rgba(255, 117, 160, 0.2);
+            padding-bottom: 6px;
+            text-align: center;
+        }
+
+        .texto-poetico {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 0.82rem;
+            line-height: 1.45;
+            color: #e2d9f3;
+            text-align: center;
+            margin: 12px 0;
+        }
+
+        .texto-poetico strong {
+            color: var(--cor-primaria);
+            font-weight: normal;
+        }
+
+        .ilustracao-romantica {
+            width: 100%;
+            height: 110px;
+            border-radius: 10px;
+            background: radial-gradient(circle, rgba(255, 117, 160, 0.1) 0%, rgba(0,0,0,0.4) 100%);
+            border: 1px solid rgba(255, 117, 160, 0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            animation: flutuarSuave 3s infinite ease-in-out;
+        }
+
+        .rodape-pagina {
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.05rem;
+            color: var(--cor-primaria);
+            text-align: center;
+        }
+
+        .btn-interativo {
+            background: linear-gradient(135deg, #ff75a0 0%, #b34180 100%);
+            border: 1px solid var(--cor-secundaria);
+            color: #fff;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.72rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 117, 160, 0.3);
+            margin: 10px auto 0;
+            display: block;
+        }
+
+        .btn-interativo:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px var(--cor-primaria);
+        }
+
+        .frase-final-destaque {
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.55rem;
+            line-height: 1.4;
+            color: #fff;
+            text-shadow: 0 0 15px rgba(255, 117, 160, 0.6);
+            text-align: center;
+            margin: 15px 0;
+            font-weight: 700;
+        }
+
+        /* ==========================================
+           4. ANIMAÇÕES
+           ========================================== */
+        @keyframes pulsarCoracao {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px var(--cor-primaria)); }
+            50% { transform: scale(1.1); filter: drop-shadow(0 0 15px var(--cor-primaria)); }
+        }
+
+        @keyframes flutuarSuave {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        /* ==========================================
+           5. CONTROLES INFERIORES
+           ========================================== */
+        .controles-navegacao {
+            position: absolute;
+            bottom: -75px; /* Prende os botões logo abaixo do livro */
+            left: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .btn-nav {
+            background: rgba(255, 117, 160, 0.08);
+            border: 1px solid rgba(255, 117, 160, 0.4);
+            color: #fff;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 12px 28px;
+            border-radius: 30px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(5px);
+        }
+
+        .btn-nav:hover:not(:disabled) {
+            background: rgba(255, 117, 160, 0.25);
+            border-color: var(--cor-primaria);
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 117, 160, 0.4);
+        }
+
+        .btn-nav:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            background: transparent;
+            border-color: rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.4);
+            box-shadow: none;
+            transform: translateY(0);
+        }
+
+        /* ==========================================
+           6. OTIMIZAÇÕES MOBILE (CELULAR) - FLUXO 3D REAL
+           ========================================== */
+        @media (max-width: 850px) {
+            .livro-wrapper { width: 320px; height: 500px; } 
+            .livro { width: 100%; right: 0; transform-origin: center center; }
+            .lombada { display: none; }
+            
+            /* No celular, giramos a página no próprio eixo Y (centro) e usamos opacidade 
+               para criar a ilusão perfeita de leitura página por página sem quebrar o layout */
+            .folha { 
+                transform-origin: center center !important; 
+                opacity: 0;
+                pointer-events: none;
+                transition: transform 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
+            }
+            
+            /* Mostra a frente da folha */
+            .folha.ativa-mobile { 
+                opacity: 1; 
+                pointer-events: auto;
+                z-index: 10; 
+                transform: rotateY(0deg) !important;
+            }
+            
+            /* Mostra o verso da folha perfeitamente encaixado */
+            .folha.virada-mobile { 
+                opacity: 1; 
+                pointer-events: auto;
+                z-index: 10; 
+                transform: rotateY(-180deg) !important; 
+            }
+
+            /* Espaçamentos e Fontes maiores para melhor leitura na tela pequena */
+            .pagina-conteudo { padding: 25px 18px; }
+            .titulo-pagina { font-size: 1.45rem; }
+            .texto-poetico { font-size: 1rem; line-height: 1.55; margin: 10px 0; }
+            .rodape-pagina { font-size: 1.25rem; }
+            .ilustracao-romantica { height: 95px; font-size: 3rem; }
+            .titulo-livro { font-size: 2rem; }
+            .moldura-capa { padding: 30px 15px; }
+            .frase-final-destaque { font-size: 1.4rem; margin: 10px 0; }
+            .btn-interativo { padding: 12px 24px; font-size: 0.85rem; } 
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="espaco-canvas"></canvas>
+
+    <div class="area-livro">
+        <div class="livro-wrapper" id="livroWrapper">
+            <div class="lombada"></div>
+
+            <!-- QUARTA FOLHA (Última) -->
+            <div class="folha folha-4" id="folha4">
+                <div class="pagina pagina-conteudo">
+                    <h2 class="titulo-pagina">Meu Tudo</h2>
+                    <p class="texto-poetico">
+                        "Cada página dessa nossa história é o meu lugar favorito no mundo. <br><br>
+                        Você é a poesia que eu sempre quis ler e a aventura que eu sempre quis viver."
+                    </p>
+                    <div class="ilustracao-romantica">📖💫</div>
+                    <div class="rodape-pagina">Para sempre, nós...</div>
+                </div>
+
+                <div class="pagina verso" style="background: radial-gradient(circle, #1a082d 0%, #06020c 100%); justify-content: space-between; padding: 25px 20px; align-items: center; display: flex; flex-direction: column;">
+                    <div style="font-size: 2.5rem; animation: pulsarCoracao 2s infinite; margin-top: 15px;">💖</div>
+                    <p class="frase-final-destaque">
+                        "Será que um livro consegue dizer o quanto eu amo minha garota favorita :)"
+                    </p>
+                    <div style="width: 100%; margin-bottom: 10px;">
+                        <button class="btn-interativo" onclick="lancarSuperAmor(event)">Enviar Todo Meu Amor</button>
+                        <p style="font-size: 0.7rem; color: rgba(255, 255, 255, 0.5); text-align: center; margin-top: 12px; font-family: monospace;">
+                            (toque para preencher nosso céu)
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TERCEIRA FOLHA -->
+            <div class="folha folha-3" id="folha3">
+                <div class="pagina pagina-conteudo">
+                    <h2 class="titulo-pagina">5 de Julho</h2>
+                    <p class="texto-poetico">
+                        "Foi o dia em que nossos mundos colidiram de forma perfeita, o início de tudo. <br><br>
+                        O universo conspirou a nosso favor e, desde aquele instante, todos os meus momentos ganharam mais cor e sentido ao seu lado."
+                    </p>
+                    <div class="ilustracao-romantica">📅✨</div>
+                    <div class="rodape-pagina">O nosso marco zero</div>
+                </div>
+
+                <div class="pagina verso pagina-conteudo">
+                    <h2 class="titulo-pagina">O Nosso Infinito</h2>
+                    <p class="texto-poetico">
+                        "Se me perguntassem quantas estrelas existem no céu, eu diria que não importa, pois nenhuma delas brilha tanto quanto o seu sorriso quando me vê. <br><br>
+                        Obrigado por ser meu lar em meio ao caos desse imenso universo."
+                    </p>
+                    <div class="ilustracao-romantica">🪐❤️</div>
+                    <div class="rodape-pagina">Com todo o meu amor...</div>
+                </div>
+            </div>
+
+            <!-- SEGUNDA FOLHA -->
+            <div class="folha folha-2" id="folha2">
+                <div class="pagina pagina-conteudo">
+                    <h2 class="titulo-pagina">Atração Estelar</h2>
+                    <p class="texto-poetico">
+                        "Assim como a gravidade atrai os planetas, algo invisível e infinitamente poderoso me puxa sempre para perto de você.<br><br>
+                        Você é o centro da minha galáxia particular."
+                    </p>
+                    <div class="ilustracao-romantica">🌌</div>
+                    <div class="rodape-pagina">Você é o meu destino</div>
+                </div>
+
+                <div class="pagina verso pagina-conteudo">
+                    <h2 class="titulo-pagina">Nossa Constelação</h2>
+                    <p class="texto-poetico">
+                        "Cada momento ao seu lado, cada risada compartilhada e cada abraço apertado são como estrelas. <br><br>
+                        Juntos, nós desenhamos a constelação mais bonita de toda a história do universo."
+                    </p>
+                    <div class="ilustracao-romantica">✨🥂</div>
+                    <div class="rodape-pagina">Desenhados no céu</div>
+                </div>
+            </div>
+
+            <!-- PRIMEIRA FOLHA -->
+            <div class="folha folha-1 ativa-mobile" id="folha1">
+                <div class="pagina capa-frente">
+                    <div class="moldura-capa">
+                        <div class="brilho-topo">✨</div>
+                        <h1 class="titulo-livro">O NOSSO<br>UNIVERSO</h1>
+                        <div class="coracao-cosmico">💖</div>
+                        <div style="font-size: 0.8rem; color: var(--cor-secundaria); font-weight: bold; letter-spacing: 1.5px; text-align: center; line-height: 1.4;">
+                            ABRA PARA LER<br>NOSSO DESTINO
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pagina verso pagina-conteudo">
+                    <h2 class="titulo-pagina">O Alinhamento Cósmico</h2>
+                    <p class="texto-poetico">
+                        "O universo existe há mais de 13 bilhões de anos. Em meio a bilhões de galáxias e trilhões de mundos possíveis... <br><br>
+                        eu tive a sorte indescritível de coincidir no tempo e no espaço exatamente com <strong>você</strong>."
+                    </p>
+                    <div class="ilustracao-romantica">🌠</div>
+                    <div class="rodape-pagina">A mais linda coincidência</div>
+                </div>
+            </div>
+
+            <div class="controles-navegacao">
+                <button class="btn-nav" id="btn-voltar" onclick="voltarPagina()" disabled>Voltar</button>
+                <button class="btn-nav" id="btn-avancar" onclick="avancarPagina()">Folhear</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const musicaFundo = new Audio('musica.mp3');
+        musicaFundo.loop = true;
+        musicaFundo.volume = 0.4;
+        let musicaIniciada = false;
+
+        function iniciarMusica() {
+            if (!musicaIniciada) {
+                musicaFundo.play().then(() => { musicaIniciada = true; }).catch(erro => console.log("Aguardando interação."));
+            }
+        }
+
+        function playSomMagico(tipo) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            if (tipo === 'folhear') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(250, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.4);
+                gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+            } else if (tipo === 'amor') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1);
+                osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2);
+                osc.frequency.setValueAtTime(1046.50, audioCtx.currentTime + 0.3);
+                gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.25, audioCtx.currentTime + 0.05);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+            }
+        }
+
+        const canvas = document.getElementById('espaco-canvas');
+        const ctx = canvas.getContext('2d');
+        let estrelas = [], coracoes = [];
+
+        function redimensionarCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; inicializarEstrelas(); }
+        class Estrela {
+            constructor() { this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height; this.tamanho = Math.random() * 2 + 0.5; this.brilho = Math.random(); this.velBrilho = 0.005 + Math.random() * 0.015; this.velX = (Math.random() - 0.5) * 0.15; this.velY = (Math.random() - 0.5) * 0.15; }
+            atualizar() { this.x += this.velX; this.y += this.velY; if (this.x < 0) this.x = canvas.width; if (this.x > canvas.width) this.x = 0; if (this.y < 0) this.y = canvas.height; if (this.y > canvas.height) this.y = 0; this.brilho += this.velBrilho; if (this.brilho > 1 || this.brilho < 0.1) this.velBrilho = -this.velBrilho; }
+            desenhar() { ctx.fillStyle = `rgba(255, 255, 255, ${this.brilho})`; ctx.beginPath(); ctx.arc(this.x, this.y, this.tamanho, 0, Math.PI * 2); ctx.fill(); }
+        }
+        class Coracao {
+            constructor(x, y) { this.x = x; this.y = y; this.tamanho = 8 + Math.random() * 12; this.velX = (Math.random() - 0.5) * 1.5; this.velY = -1 - Math.random() * 1.8; this.opacidade = 1; this.fatorRotacao = (Math.random() - 0.5) * 0.03; this.angulo = Math.random() * Math.PI; this.cor = `hsla(${330 + Math.random() * 25}, 100%, 75%, `; }
+            atualizar() { this.x += this.velX; this.y += this.velY; this.angulo += this.fatorRotacao; this.opacidade -= 0.008; }
+            desenhar() { ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.angulo); ctx.fillStyle = this.cor + this.opacidade + ')'; ctx.beginPath(); ctx.moveTo(0, 0); ctx.bezierCurveTo(-this.tamanho / 2, -this.tamanho / 2, -this.tamanho, this.tamanho / 3, 0, this.tamanho); ctx.bezierCurveTo(this.tamanho, this.tamanho / 3, this.tamanho / 2, -this.tamanho / 2, 0, 0); ctx.closePath(); ctx.fill(); ctx.shadowColor = 'rgba(255, 117, 160, 0.4)'; ctx.shadowBlur = 8; ctx.restore(); }
+        }
+        function inicializarEstrelas() { estrelas = []; const quantidade = Math.floor((canvas.width * canvas.height) / 6000); for (let i = 0; i < quantidade; i++) estrelas.push(new Estrela()); }
+        window.addEventListener('click', (e) => { iniciarMusica(); if (e.target.tagName === 'BUTTON') return; playSomMagico('amor'); for (let i = 0; i < 5; i++) coracoes.push(new Coracao(e.clientX, e.clientY)); });
+        window.addEventListener('touchstart', (e) => { iniciarMusica(); if (e.target.tagName === 'BUTTON') return; const toque = e.touches[0]; playSomMagico('amor'); for (let i = 0; i < 4; i++) coracoes.push(new Coracao(toque.clientX, toque.clientY)); });
+        function lancarSuperAmor(event) { event.stopPropagation(); playSomMagico('amor'); const xCentro = window.innerWidth / 2; const yBase = window.innerHeight * 0.8; for (let i = 0; i < 35; i++) { setTimeout(() => { coracoes.push(new Coracao(xCentro + (Math.random() - 0.5) * 180, yBase)); }, i * 60); } }
+        function animarFundo() { ctx.fillStyle = '#03020c'; ctx.fillRect(0, 0, canvas.width, canvas.height); let gradiente = ctx.createRadialGradient(canvas.width / 2, canvas.height / 2, 10, canvas.width / 2, canvas.height / 2, canvas.width * 0.8); gradiente.addColorStop(0, 'rgba(40, 15, 70, 0.22)'); gradiente.addColorStop(0.5, 'rgba(20, 10, 45, 0.08)'); gradiente.addColorStop(1, 'transparent'); ctx.fillStyle = gradiente; ctx.fillRect(0, 0, canvas.width, canvas.height); estrelas.forEach(e => { e.atualizar(); e.desenhar(); }); for (let i = coracoes.length - 1; i >= 0; i--) { coracoes[i].atualizar(); coracoes[i].desenhar(); if (coracoes[i].opacidade <= 0) coracoes.splice(i, 1); } requestAnimationFrame(animarFundo); }
+        window.addEventListener('resize', redimensionarCanvas); redimensionarCanvas(); animarFundo();
+
+        let paginaAtual = 0; 
+        let totalPaginas = 4;
+        let animandoAtualmente = false;
+        
+        const livroWrapper = document.getElementById('livroWrapper'); 
+        const folhas = [
+            document.getElementById('folha1'), 
+            document.getElementById('folha2'), 
+            document.getElementById('folha3'),
+            document.getElementById('folha4')
+        ]; 
+        
+        const btnVoltar = document.getElementById('btn-voltar'); 
+        const btnAvancar = document.getElementById('btn-avancar');
+        
+        function avancarPagina() { 
+            if (animandoAtualmente) return;
+            iniciarMusica(); 
+            if (paginaAtual < totalPaginas) { 
+                animandoAtualmente = true;
+                playSomMagico('folhear'); 
+                paginaAtual++; 
+                atualizarVisualLivro();
+                setTimeout(() => { animandoAtualmente = false; }, 1500);
+            } 
+        }
+        
+        function voltarPagina() { 
+            if (animandoAtualmente) return;
+            if (paginaAtual > 0) { 
+                animandoAtualmente = true;
+                playSomMagico('folhear'); 
+                paginaAtual--; 
+                atualizarVisualLivro();
+                setTimeout(() => { animandoAtualmente = false; }, 1500);
+            } 
+        }
+        
+        function atualizarVisualLivro() { 
+            const isMobile = window.innerWidth <= 850; 
+            
+            totalPaginas = isMobile ? 7 : 4; 
+            
+            if (paginaAtual > totalPaginas) paginaAtual = totalPaginas;
+
+            if (isMobile) { 
+                folhas.forEach((folha, index) => { 
+                    folha.classList.remove('ativa-mobile', 'virada-mobile', 'virada'); 
+                    
+                    const folhaAtivaIndex = Math.floor(paginaAtual / 2);
+                    const isVerso = paginaAtual % 2 !== 0;
+                    
+                    if (index === folhaAtivaIndex) {
+                        if (isVerso) folha.classList.add('virada-mobile');
+                        else folha.classList.add('ativa-mobile');
+                    }
+                }); 
+                livroWrapper.classList.remove('aberto');
+            } else { 
+                folhas.forEach(f => f.classList.remove('ativa-mobile', 'virada-mobile'));
+                
+                if (paginaAtual === 0) { 
+                    livroWrapper.classList.remove('aberto'); 
+                    folhas.forEach(f => f.classList.remove('virada')); 
+                } else { 
+                    livroWrapper.classList.add('aberto'); 
+                    folhas.forEach((folha, index) => {
+                        if (index < paginaAtual) {
+                            folha.classList.add('virada');
+                        } else {
+                            folha.classList.remove('virada');
+                        }
+                    });
+                } 
+            } 
+            btnVoltar.disabled = (paginaAtual === 0); 
+            btnAvancar.disabled = (paginaAtual === totalPaginas); 
+        }
+        
+        folhas[0].addEventListener('click', (e) => { if (paginaAtual === 0 && e.target.tagName !== 'BUTTON') avancarPagina(); });
+        
+        function ajustarEscalaLivro() { 
+            const wrapper = document.getElementById('livroWrapper'); 
+            const larguraTela = window.innerWidth; 
+            const alturaTela = window.innerHeight; 
+            
+            const isMobile = larguraTela <= 850;
+            const larguraBase = isMobile ? 320 : 800;
+            const alturaBase = isMobile ? 560 : 560;
+
+            const escala = Math.min(1, Math.min((larguraTela - 20) / larguraBase, (alturaTela - 50) / alturaBase)); 
+            wrapper.style.transform = `scale(${escala})`; 
+            atualizarVisualLivro(); 
+        }
+        
+        window.addEventListener('resize', ajustarEscalaLivro); ajustarEscalaLivro();
+    </script>
+</body>
+</html>
