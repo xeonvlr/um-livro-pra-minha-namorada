@@ -1,45 +1,47 @@
-ws<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Para o Meu Amor</title>
     <!-- Fonte temática elegante -->
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Playfair Display', serif; overflow: hidden; background: #050505; }
-        .screen { height: 100vh; width: 100vw; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 1.2s ease; }
+        body, html { 
+            margin: 0; padding: 0; height: 100%; font-family: 'Playfair Display', serif; 
+            overflow: hidden; 
+            /* A imagem agora cobre todo o fundo do site permanentemente */
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('foto.png') no-repeat center center fixed; 
+            background-size: cover;
+        }
+        .screen { height: 100vh; width: 100vw; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 1.2s ease; padding: 10px; box-sizing: border-box; }
         .hidden { display: none; opacity: 0; }
 
-        /* Menu Centralizado Estético */
-        #menu-screen {
-            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('foto.png') no-repeat center center;
-            background-size: cover;
-            text-align: center;
-        }
-        #menu-screen h1 { font-family: 'Dancing Script', cursive; font-size: 3.8rem; color: #fff; margin-bottom: 40px; text-shadow: 0 0 20px rgba(255,255,255,0.5); }
+        /* Ajuste do Menu */
+        #menu-screen { text-align: center; }
+        #menu-screen h1 { font-family: 'Dancing Script', cursive; font-size: 2.5rem; color: #fff; margin-bottom: 30px; text-shadow: 0 0 20px rgba(0,0,0,0.7); }
         
         .menu-option { 
-            cursor: pointer; font-size: 1.5rem; letter-spacing: 5px; text-transform: uppercase;
-            border: 2px solid #d4af37; padding: 15px 40px; color: #d4af37;
+            cursor: pointer; font-size: 1.2rem; letter-spacing: 3px; text-transform: uppercase;
+            border: 2px solid #d4af37; padding: 15px 30px; color: #d4af37;
             background: rgba(0,0,0,0.3); transition: all 0.5s ease;
         }
-        .menu-option:hover { background: #d4af37; color: #000; box-shadow: 0 0 30px #d4af37; transform: scale(1.05); }
+        .menu-option:hover { background: #d4af37; color: #000; }
 
-        /* Livro Estética Alice */
-        #book-screen { background: radial-gradient(circle at center, #1a1a2e 0%, #050505 100%); color: #eec976; }
-        .stars { position: absolute; width: 100%; height: 100%; background-image: radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px); background-size: 550px 550px; opacity: 0.3; }
+        /* Livro Estética Alice (com transparência para ver a foto no fundo) */
+        #book-screen { color: #eec976; }
+        .stars { position: absolute; width: 100%; height: 100%; background-image: radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px); background-size: 550px 550px; opacity: 0.2; }
         
-        .book-container { position: relative; z-index: 1; background: rgba(20, 20, 30, 0.95); border: 2px double #d4af37; padding: 50px; max-width: 550px; text-align: center; box-shadow: 0 0 50px rgba(0,0,0,0.8); border-radius: 5px; }
+        .book-container { position: relative; z-index: 1; background: rgba(0, 0, 0, 0.75); border: 2px double #d4af37; padding: 30px 20px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 0 30px rgba(0,0,0,0.8); border-radius: 5px; }
         .page { display: none; animation: fadeIn 0.8s; }
         .page.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        h2 { font-family: 'Dancing Script', cursive; color: #d4af37; font-size: 2rem; margin-bottom: 20px; }
-        p { font-size: 1.3rem; line-height: 1.8; font-style: italic; }
+        h2 { font-family: 'Dancing Script', cursive; color: #d4af37; font-size: 1.8rem; margin-bottom: 15px; }
+        p { font-size: 1.1rem; line-height: 1.6; font-style: italic; color: #fff; }
         
-        .nav-btns { margin-top: 40px; display: flex; justify-content: center; gap: 20px; }
-        button { background: rgba(212, 175, 55, 0.1); border: 1px solid #d4af37; color: #d4af37; padding: 10px 25px; cursor: pointer; transition: 0.4s; font-family: 'Playfair Display', serif; }
+        .nav-btns { margin-top: 30px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+        button { background: rgba(212, 175, 55, 0.1); border: 1px solid #d4af37; color: #d4af37; padding: 10px 15px; cursor: pointer; transition: 0.4s; font-family: 'Playfair Display', serif; }
         button:hover { background: #d4af37; color: #000; }
     </style>
 </head>
@@ -70,7 +72,7 @@ ws<!DOCTYPE html>
 
             <div id="page3" class="page">
                 <h2>Capítulo 3</h2>
-                <p>Às vezes, paro para observar como o mundo gira tão rápido, mas quando estou contigo, o tempo simplesmente esquece de passar. É como se a Rainha de Copas tivesse parado o relógio só para nós duas.</p>
+                <p>Às vezes, paro para observar como o mundo gira tão rápido, mas quando estou contigo, o tempo simplesmente esquece de passar. É como se a Rainha de Copas tivesse parado o relógio só para nós dois.</p>
             </div>
 
             <div id="page4" class="page">
